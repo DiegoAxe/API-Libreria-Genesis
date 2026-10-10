@@ -100,13 +100,14 @@ const registro = async (req, res) => {
     }
 };
 
-// 3- Funcion para mostrar la Lista de recursos
+// 3- Funcion para mostrar la Lista de recursos (y tambien para ordenar, filtrar y buscar)
 const verListadoRecursos = async (req, res) => {
     try {
         const {
             busqueda = "",
             ordenar = "ASC",
-            filtro
+            filtro,
+            id_usuario
         } = req.query;
 
         // Validar los parámetros recibidos
@@ -121,6 +122,18 @@ const verListadoRecursos = async (req, res) => {
             });
         }
 
+        // Validar el ID del usuario
+        const idUsuario = Number(id_usuario);
+        if (
+            !Number.isInteger(idUsuario) ||
+            idUsuario <= 0
+        ) {
+            return res.status(400).json({
+                success: false,
+                mensaje: "Debe proporcionar un usuario válido."
+            });
+        }
+
         // Validar el ordenamiento
         const direccion = ordenar.toUpperCase();
 
@@ -131,20 +144,20 @@ const verListadoRecursos = async (req, res) => {
             });
         }
 
-        // Construir las condiciones de búsqueda
+        // Construir los filtros
         const condiciones = [];
         const valores = [];
 
         // Filtrar por tipo de recurso
         if (filtro && filtro.trim()) {
-            condiciones.push("tipo = ?");
+            condiciones.push("r.tipo = ?");
             valores.push(filtro.trim());
         }
 
         // Buscar por título o tipo
         if (busqueda.trim()) {
             condiciones.push(
-                "(titulo LIKE ? OR tipo LIKE ?)"
+                "(r.titulo LIKE ? OR r.tipo LIKE ?)"
             );
 
             const termino = `%${busqueda.trim()}%`;
@@ -152,27 +165,60 @@ const verListadoRecursos = async (req, res) => {
             valores.push(termino, termino);
         }
 
-        // Agregar WHERE únicamente si existen filtros
+        // Construir WHERE solo si hay condiciones
         const where = condiciones.length > 0
             ? `WHERE ${condiciones.join(" AND ")}`
             : "";
 
-        // Consultar recursos
+        // Consultar recursos, promedio de estrellas y favoritos
         const [recursos] = await db.query(
             `
-            SELECT *
-            FROM recursos
+            SELECT
+                r.id_recurso,
+                r.titulo,
+                r.descripcion,
+                r.tipo,
+                r.enlace,
+                r.imagen,
+
+                COALESCE(e.promedio, 0) AS estrellas,
+
+                EXISTS (
+                    SELECT 1
+                    FROM favoritos f
+                    WHERE f.id_recurso = r.id_recurso
+                    AND f.id_usuario = ?
+                ) AS favorito
+
+            FROM recursos r
+
+            LEFT JOIN (
+                SELECT
+                    id_recurso,
+                    ROUND(AVG(puntaje), 1) AS promedio
+                FROM estrellas
+                GROUP BY id_recurso
+            ) e ON e.id_recurso = r.id_recurso
+
             ${where}
-            ORDER BY titulo ${direccion}
+
+            ORDER BY r.titulo ${direccion}
             `,
-            valores
+            [idUsuario, ...valores]
         );
+
+        // Garantizar los tipos esperados por el frontend
+        const recursosFormateados = recursos.map(recurso => ({
+            ...recurso,
+            estrellas: Number(recurso.estrellas),
+            favorito: Boolean(recurso.favorito)
+        }));
 
         return res.status(200).json({
             success: true,
             mensaje: "Listado de recursos obtenido correctamente.",
-            cantidad: recursos.length,
-            recursos
+            cantidad: recursosFormateados.length,
+            recursos: recursosFormateados
         });
 
     } catch (error) {
@@ -187,7 +233,6 @@ const verListadoRecursos = async (req, res) => {
         });
     }
 };
-
 module.exports = {
     login,
     registro,
