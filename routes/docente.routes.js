@@ -10,9 +10,9 @@ const {
 router.post('/', agregarRecurso);
 
 // Ruta para editar un recurso (PUT)
-router.put('/:id', editarRecurso);
+router.put('/:id_recurso', editarRecurso);
 
 // Ruta para eliminar un recurso (DELETE)
-router.delete('/:id', eliminarRecurso);
+router.delete('/:id_recurso', eliminarRecurso);
 
 module.exports = router;
