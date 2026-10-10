@@ -14,17 +14,19 @@ const login = async (req, res) => {
         }
 
         // Comprobar que el nombre_usuario este registrado
-        const [usuario] = await db.query(
+        const [usuarios] = await db.query(
             "SELECT * FROM usuarios WHERE nombre_usuario = ?",
             [nombre_usuario]
         );
 
-        if (usuario.length === 0) {
+        if (usuarios.length === 0) {
             return res.status(404).json({
                 success: false,
                 mensaje: "El usuario no existe."
             });
         }
+
+        const usuario = usuarios[0];
 
         // Verificar la contraseña
         if (contrasena !== usuario.contrasena) {
