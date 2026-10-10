@@ -19,7 +19,7 @@ const login = async (req, res) => {
             [nombre_usuario]
         );
 
-        if (!usuario) {
+        if (usuario.length === 0) {
             return res.status(404).json({
                 success: false,
                 mensaje: "El usuario no existe."
@@ -69,7 +69,7 @@ const registro = async (req, res) => {
             [nombre_usuario]
         );
 
-        if (usuarioExistente) {
+        if (usuarioExistente.length > 0) {
             return res.status(409).json({
                 success: false,
                 mensaje: "El usuario ya existe."
