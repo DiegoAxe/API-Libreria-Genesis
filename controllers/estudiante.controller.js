@@ -101,14 +101,14 @@ const darEstrellas = async (req, res) => {
         }
 
         // Verificar si previamente ya se le dio estrellas a ese recurso
-        const [favoritos] = await db.query(
+        const [estrellas] = await db.query(
             `SELECT id_estrella
              FROM estrellas
              WHERE id_usuario = ? AND id_recurso = ?`,
             [id_usuario, id_recurso]
         );
 
-        if (favoritos.length > 0) {
+        if (estrellas.length > 0) {
             // Si ya existe, se actualiza el puntaje
             await db.query(
                 `UPDATE estrellas

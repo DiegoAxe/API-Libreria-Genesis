@@ -6,9 +6,9 @@ const {
 } = require('../controllers/estudiante.controller');
 
 // Ruta para marcar un favorito (POST)
-router.post('/like/:id_recurso', marcarFavorito);
+router.post('/like/', marcarFavorito);
 
 // Ruta para dar estrellas (POST)
-router.post('/stars/:id_recurso', darEstrellas);
+router.post('/stars/', darEstrellas);
 
 module.exports = router;
