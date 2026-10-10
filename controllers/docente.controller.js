@@ -89,6 +89,20 @@ const editarRecurso = async (req, res) => {
             imagen
         } = req.body;
 
+        // Validar que ninguno venga vacio
+        if (
+            !titulo ||
+            !descripcion ||
+            !tipo ||
+            !enlace ||
+            !imagen
+        ) {
+            return res.status(400).json({
+                success: false,
+                mensaje: "Todos los campos son obligatorios."
+            });
+        }
+
         // Verificar que el recurso exista
         const [recursos] = await db.query(
             `SELECT id_recurso, titulo, descripcion, tipo, enlace, imagen
