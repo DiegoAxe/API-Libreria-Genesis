@@ -3,7 +3,7 @@ const cors = require('cors');
 require('dotenv').config();
 const db = require('./db');
 
-const compartidasRoutes = require('./routes/compartidas.routes');
+const compartidasRoutes = require('./routes/compartidos.routes');
 const docenteRoutes = require('./routes/docente.routes');
 const estudianteRoutes = require("./routes/estudiante.routes");
 
