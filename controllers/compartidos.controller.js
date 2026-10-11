@@ -170,7 +170,7 @@ const verListadoRecursos = async (req, res) => {
             ? `WHERE ${condiciones.join(" AND ")}`
             : "";
 
-        // Consultar recursos, promedio de estrellas y favoritos
+        // Consultar recursos, mi puntaje del recurso, si fue mi favorito y el promedio de estrellas
         const [recursos] = await db.query(
             `
             SELECT
@@ -181,7 +181,15 @@ const verListadoRecursos = async (req, res) => {
                 r.enlace,
                 r.imagen,
 
-                COALESCE(e.promedio, 0) AS estrellas,
+                COALESCE(e.promedio, 0) AS prom_estrellas,
+
+                (
+                    SELECT es.puntaje
+                    FROM estrellas es
+                    WHERE es.id_recurso = r.id_recurso
+                    AND es.id_usuario = ?
+                    LIMIT 1
+                ) AS mi_puntaje,
 
                 EXISTS (
                     SELECT 1
@@ -204,13 +212,14 @@ const verListadoRecursos = async (req, res) => {
 
             ORDER BY r.titulo ${direccion}
             `,
-            [idUsuario, ...valores]
+            [idUsuario, idUsuario, ...valores]
         );
 
         // Garantizar los tipos esperados por el frontend
         const recursosFormateados = recursos.map(recurso => ({
             ...recurso,
-            estrellas: Number(recurso.estrellas),
+            prom_estrellas: Number(recurso.prom_estrellas),
+            mi_puntaje: recurso.mi_puntaje !== null ? Number(recurso.mi_puntaje) : null,
             favorito: Boolean(recurso.favorito)
         }));
 
