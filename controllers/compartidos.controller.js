@@ -219,7 +219,7 @@ const verListadoRecursos = async (req, res) => {
         const recursosFormateados = recursos.map(recurso => ({
             ...recurso,
             prom_estrellas: Number(recurso.prom_estrellas),
-            mi_puntaje: recurso.mi_puntaje !== null ? Number(recurso.mi_puntaje) : null,
+            mi_puntaje: recurso.mi_puntaje !== null ? Number(recurso.mi_puntaje) : 0,
             favorito: Boolean(recurso.favorito)
         }));
 
